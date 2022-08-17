@@ -413,7 +413,7 @@ export function Index() {
   );
 }
 
-Index.getServerSideProps = async ({ req }) => {
+export const getServerSideProps = async ({ req }) => {
   const endpoint = `https://v2.unreserved.com/graphql`
   const listing = new GraphQLClient(endpoint)
   const query = gql`
@@ -483,7 +483,7 @@ Index.getServerSideProps = async ({ req }) => {
   })
 
   return {
-    props: { listing: listingData.listing },
+    props: { listing: listingData},
   }
 }
 
