@@ -1,4 +1,5 @@
 import styles from './index.module.css';
+import { gql, GraphQLClient } from 'graphql-request'
 
 export function Index() {
   /*
@@ -410,6 +411,80 @@ export function Index() {
       </div>
     </div>
   );
+}
+
+Index.getServerSideProps = async ({ req }) => {
+  const endpoint = `https://v2.unreserved.com/graphql`
+  const listing = new GraphQLClient(endpoint)
+  const query = gql`
+    query GetListings($input: PropertyListingConnectionInput!) {
+      residentialPropertyListingConnection(input: $input) {
+        pageInfo {
+          totalEdges
+        }
+        edges {
+          node {
+            id
+            listingStatus
+            updatedAt
+            property {
+              address {
+                address1
+                address2
+                city
+                region
+                regionCode
+                latitude
+                longitude
+                zipCode
+              }
+            }
+            propertyDetails {
+              squareFootage {
+                approximateSquareFootage
+                approximateSquareFootageMin
+                approximateSquareFootageMax
+              }
+              bathrooms {
+                total
+              }
+            }
+            ... on ResidentialPropertyForSaleListing {
+              propertyDetails {
+                ... on ResidentialHousePropertyDetails {
+                  bedrooms {
+                    total
+                  }
+                }
+                ... on ResidentialApartmentPropertyDetails {
+                  apartmentBedrooms
+                }
+              }
+            }
+          }
+        }
+        facetGroups {
+          name
+          facets {
+            name
+            count
+            selected
+          }
+        }
+      }
+    }
+  `
+  const listingData = await listing.request(query, {
+    input: {
+      first: 12,
+      offset: 0,
+      keyword: '',
+    },
+  })
+
+  return {
+    props: { listing: listingData.listing },
+  }
 }
 
 export default Index;
